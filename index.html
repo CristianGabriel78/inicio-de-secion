@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Registro e Inicio de Sesión</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            color: #333;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            padding: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label, input, select, button {
+            margin-bottom: 15px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .forgot-password a, .register-link a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+
+        .forgot-password a:hover, .register-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Inicio de Sesión -->
+        <div id="inicioSesionSection" class="section active">
+            <h1>Iniciar Sesión</h1>
+            <form id="inicioSesionForm">
+                <label for="emailLogin">Correo:</label>
+                <input type="email" id="emailLogin" required>
+
+                <label for="contraseñaLogin">Contraseña:</label>
+                <input type="password" id="contraseñaLogin" required>
+
+                <button type="button" onclick="iniciarSesion()">Iniciar sesión</button>
+
+                <div class="forgot-password">
+                    <a href="#" onclick="mostrarFormularioRecuperar()">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <div class="register-link">
+                    <a href="#" onclick="mostrarRegistro()">¿No tienes cuenta? Regístrate</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Registro -->
+        <div id="registroSection" class="section">
+            <h1>Formulario de Registro</h1>
+            <form id="registroForm">
+                <label for="nombre">Nombre Completo:</label>
+                <input type="text" id="nombre" required>
+
+                <label for="apellidos">Apellidos:</label>
+                <input type="text" id="apellidos" required>
+
+                <label for="fechaNacimiento">Fecha de Nacimiento:</label>
+                <input type="date" id="fechaNacimiento" required>
+
+                <label for="genero">Género:</label>
+                <select id="genero" required>
+                    <option value="">Seleccione</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="femenino">Femenino</option>
+                    <option value="otro">Otro</option>
+                </select>
+
+                <button type="button" onclick="generarCorreo()">Generar Correo</button>
+            </form>
+        </div>
+
+        <!-- Mostrar Correo Generado -->
+        <div id="correoGeneradoSection" class="section">
+            <h2>Correo Generado</h2>
+            <p id="correoGenerado"></p>
+            <button type="button" onclick="mostrarCrearContraseña()">Siguiente</button>
+        </div>
+
+        <!-- Crear Contraseña -->
+        <div id="crearContraseñaSection" class="section">
+            <h2>Crear Contraseña</h2>
+            <label for="contraseña">Contraseña:</label>
+            <input type="password" id="contraseña" required>
+
+            <label for="confirmarContraseña">Confirmar Contraseña:</label>
+            <input type="password" id="confirmarContraseña" required>
+
+            <button type="button" onclick="registrarUsuario()">Registrar</button>
+        </div>
+
+        <!-- Recuperar Contraseña -->
+        <div id="recuperarForm" class="section">
+            <h3>Recuperar Contraseña</h3>
+            <label for="emailRecuperar">Correo:</label>
+            <input type="email" id="emailRecuperar" placeholder="Correo registrado" required>
+            <button type="button" onclick="enviarRecuperacion()">Enviar Instrucciones</button>
+        </div>
+    </div>
+
+    <script>
+        let usuarioRegistrado = { correo: "usuario@ejemplo.com", contraseña: "1234" };
+
+        // Mostrar el formulario de registro
+        function mostrarRegistro() {
+            document.getElementById('inicioSesionSection').classList.remove('active');
+            document.getElementById('registroSection').classList.add('active');
+        }
+
+        // Mostrar la sección de crear contraseña
+        function mostrarCrearContraseña() {
+            document.getElementById('registroSection').classList.remove('active');
+            document.getElementById('correoGeneradoSection').classList.remove('active');
+            document.getElementById('crearContraseñaSection').classList.add('active');
+        }
+
+        // Generar correo basado en los campos de registro
+        function generarCorreo() {
+            const nombreCompleto = document.getElementById('nombre').value.trim();
+            const apellidosCompleto = document.getElementById('apellidos').value.trim();
+            const fechaNacimiento = new Date(document.getElementById('fechaNacimiento').value);
+            const año = String(fechaNacimiento.getFullYear()).slice(-2);
+
+            if (!nombreCompleto || !apellidosCompleto || !fechaNacimiento || !document.getElementById('genero').value) {
+                alert("Por favor, complete todos los campos.");
+                return;
+            }
+
+            const nombreParts = nombreCompleto.split(" ");
+            const apellidoParts = apellidosCompleto.split(" ");
+
+            const primeraLetraApellido = apellidoParts[0].charAt(0).toLowerCase();
+            const dosLetrasNombre = nombreParts[0].substring(1, 3).toLowerCase();
+            const dosLetrasSegundoNombre = nombreParts.length > 1 ? nombreParts[1].slice(2).toLowerCase() : "";
+            const dosUltimasSegundoApellido = apellidoParts.length > 1 ? apellidoParts[1].slice(-2).toLowerCase() : "";
+
+            const correoGenerado = `${primeraLetraApellido}${dosLetrasNombre}${dosLetrasSegundoNombre}${dosUltimasSegundoApellido}${año}@gmail.com`;
+
+            // Mostrar el correo generado
+            document.getElementById('correoGenerado').innerText = 'Correo Generado: ' + correoGenerado;
+            document.getElementById('registroSection').classList.remove('active');
+            document.getElementById('correoGeneradoSection').classList.add('active');
+        }
+
+        // Registrar usuario
+        function registrarUsuario() {
+            const contraseña = document.getElementById('contraseña').value;
+            const confirmarContraseña = document.getElementById('confirmarContraseña').value;
+
+            if (contraseña === confirmarContraseña) {
+                usuarioRegistrado.correo = document.getElementById('correoGenerado').innerText.split(": ")[1]; // Tomamos el correo generado
+                usuarioRegistrado.contraseña = contraseña; // Asignamos la contraseña registrada
+                alert("Usuario registrado con éxito.");
+                mostrarInicioSesion(); // Redirigir a iniciar sesión
+            } else {
+                alert("Las contraseñas no coinciden.");
+            }
+        }
+
+        // Volver al inicio de sesión
+        function mostrarInicioSesion() {
+            document.getElementById('crearContraseñaSection').classList.remove('active');
+            document.getElementById('inicioSesionSection').classList.add('active');
+        }
+
+        // Iniciar sesión
+        function iniciarSesion() {
+            const correo = document.getElementById('emailLogin').value;
+            const contraseña = document.getElementById('contraseñaLogin').value;
+
+            if (correo === usuarioRegistrado.correo && contraseña === usuarioRegistrado.contraseña) {
+                alert("Inicio de sesión exitoso.");
+                // Redirigir a la página de éxito
+                window.location.href = "felicidades.html"; // Cambia esta URL por la ruta que desees
+            } else {
+                alert("Correo o contraseña incorrectos.");
+            }
+        }
+
+        // Recuperación de contraseña
+        function mostrarFormularioRecuperar() {
+            document.getElementById('inicioSesionSection').classList.remove('active');
+            document.getElementById('recuperarForm').classList.add('active');
+        }
+
+        function enviarRecuperacion() {
+            const correoRecuperar = document.getElementById('emailRecuperar').value;
+            if (correoRecuperar === usuarioRegistrado.correo) {
+                alert("Instrucciones enviadas a tu correo.");
+            } else {
+                alert("Correo no encontrado.");
+            }
+        }
+    </script>
+</body>
+</html>
